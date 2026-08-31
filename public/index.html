@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Personalized science practice and mistake review for every learner." />
+    <title>Study Lab</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      :root { --blue:#3483f9; --blue-dark:#2563d8; --green:#10b981; --green-dark:#059669; --red:#ef4444; --amber:#f59e0b; --ink:#0f172a; --body:#64748b; --muted:#94a3b8; --border:#e2e8f0; --canvas:#eff6ff; --white:#fff; --card-shadow:0 1px 3px rgba(15,23,42,.08),0 4px 12px rgba(15,23,42,.04); }
+      * { box-sizing:border-box; }
+      .hidden { display:none !important; }
+      html,body { min-height:100%; }
+      body { margin:0; color:var(--ink); background:var(--canvas); font-family:Poppins,sans-serif; }
+      button,input,select { font:inherit; }
+      button { -webkit-tap-highlight-color:transparent; }
+      .display-font { font-family:Fredoka,sans-serif; }
+      .app-card { background:var(--white); border-radius:16px; box-shadow:var(--card-shadow); }
+      .press-button { border-radius:12px; font-weight:700; transition:transform .08s ease,box-shadow .08s ease; }
+      .press-button:active:not(:disabled) { transform:translateY(2px); box-shadow:none; }
+      .press-button:disabled { cursor:not-allowed; opacity:.4; }
+      .press-blue { border:2px solid var(--blue-dark); background:var(--blue); color:#fff; box-shadow:0 3px 0 var(--blue-dark); }
+      .press-green { border:2px solid var(--green-dark); background:var(--green); color:#fff; box-shadow:0 3px 0 var(--green-dark); }
+      .press-white { border:1.5px solid var(--border); background:#fff; color:var(--body); box-shadow:0 2px 0 var(--border); }
+      .nav-link { display:flex; width:100%; align-items:center; gap:12px; padding:10px 14px; border:0; border-radius:10px; background:transparent; color:var(--body); font-size:13px; font-weight:500; text-align:left; cursor:pointer; }
+      .nav-link:hover { background:#f8fafc; color:var(--ink); }
+      .nav-link.active { background:#f3f7fd; color:var(--blue); font-weight:700; }
+      .nav-icon { display:grid; width:20px; height:20px; place-items:center; font-size:17px; }
+      .nav-label { padding:15px 14px 5px; color:var(--muted); font-size:9.5px; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; }
+      .dashboard-sidebar { position:fixed; inset:0 auto 0 0; z-index:40; display:flex; width:248px; flex-direction:column; border-right:1.5px solid #f1f5f9; background:#fff; }
+      .dashboard-main { min-height:100vh; padding-left:248px; }
+      .mobile-header,.sidebar-backdrop,.practice-backdrop { display:none; }
+      .tile-card { min-height:158px; border:1.5px solid var(--border); background:#fff; border-radius:16px; box-shadow:var(--card-shadow); transition:transform .15s ease,border-color .15s ease; }
+      .tile-card:hover { transform:translateY(-2px); border-color:rgba(52,131,249,.5); }
+      .segment { height:8px; min-width:0; flex:1; border-radius:999px; background:#f1f5f9; }
+      .segment.filled { background:var(--blue); }
+      .status-toast { position:fixed; top:14px; left:50%; z-index:100; width:min(540px,calc(100% - 32px)); transform:translateX(-50%); border:1px solid; border-radius:12px; padding:12px 16px; box-shadow:var(--card-shadow); font-size:13px; font-weight:600; }
+      .quiz-view { position:fixed; inset:0; z-index:70; display:flex; flex-direction:column; overflow:hidden; background:var(--canvas); }
+      .quiz-topbar { position:relative; z-index:10; display:grid; height:70px; flex:0 0 70px; grid-template-columns:1fr auto 1fr; align-items:center; gap:16px; border-bottom:1.5px solid var(--border); background:#fff; padding:0 28px; }
+      .quiz-body { display:flex; min-height:0; flex:1; }
+      .practice-sidebar { position:relative; z-index:20; display:flex; width:322px; flex:0 0 322px; flex-direction:column; overflow:hidden; border-right:1.5px solid var(--border); background:#fff; }
+      .quiz-main { display:flex; min-width:0; flex:1; flex-direction:column; padding:28px; }
+      .quiz-panel { display:flex; min-height:0; flex:1; flex-direction:column; overflow:hidden; border:1.5px solid var(--border); border-radius:18px; background:#fff; box-shadow:var(--card-shadow); }
+      .question-scroll { min-height:0; flex:1; overflow:auto; }
+      .quiz-columns { display:grid; min-height:100%; grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
+      .prompt-pane,.response-pane { min-width:0; padding:38px 40px; }
+      .prompt-pane { border-right:1.5px solid var(--border); }
+      .answer-option { width:100%; border-radius:13px; }
+      .quiz-footer { display:flex; min-height:78px; flex:0 0 78px; align-items:center; justify-content:space-between; gap:12px; border-top:1.5px solid var(--border); padding:12px 28px; }
+      .question-number { display:grid; width:40px; height:40px; place-items:center; border:1.5px solid var(--border); border-radius:10px; background:#fff; color:var(--body); font-size:12px; font-weight:600; cursor:pointer; }
+      .question-number.current { border-color:var(--blue); background:var(--blue); color:#fff; box-shadow:0 2px 0 var(--blue-dark); }
+      .question-number.correct { border-color:var(--green); background:#ecfdf5; color:var(--green-dark); }
+      .question-number.incorrect { border-color:var(--red); background:#fef2f2; color:#b91c1c; }
+      .chapter-button { width:100%; border:0; border-radius:10px; background:transparent; padding:9px 11px; color:var(--body); font-size:12px; font-weight:600; line-height:1.4; text-align:left; cursor:pointer; }
+      .chapter-button:hover { background:#f8fafc; }
+      .chapter-button.active { background:#f3f7fd; color:var(--blue); }
+      .review-row { display:grid; grid-template-columns:minmax(0,1.8fr) minmax(140px,.8fr) 90px 100px; align-items:center; gap:18px; border-top:1px solid #f1f5f9; padding:14px 18px; }
+      @media (max-width:1023px) {
+        .mobile-header { position:sticky; top:0; z-index:30; display:grid; height:70px; grid-template-columns:44px 1fr 44px; align-items:center; border-bottom:1.5px solid var(--border); background:#fff; padding:0 20px; }
+        .dashboard-sidebar { transform:translateX(-100%); transition:transform .2s ease; }
+        .dashboard-sidebar.open { transform:translateX(0); }
+        .dashboard-main { padding-left:0; }
+        .sidebar-backdrop.open,.practice-backdrop.open { position:fixed; inset:0; z-index:35; display:block; border:0; background:rgba(15,23,42,.3); backdrop-filter:blur(2px); }
+        .quiz-topbar { height:64px; flex-basis:64px; grid-template-columns:auto minmax(0,1fr) auto; padding:0 14px; }
+        .quiz-topbar .desktop-only { display:none; }
+        .practice-sidebar { position:fixed; inset:64px auto 0 0; z-index:50; width:min(322px,88vw); transform:translateX(-100%); transition:transform .2s ease; }
+        .practice-sidebar.open { transform:translateX(0); }
+        .quiz-main { padding:12px; }
+        .quiz-columns { grid-template-columns:1fr; }
+        .prompt-pane,.response-pane { padding:22px 20px; }
+        .prompt-pane { border-right:0; }
+        .response-pane { border-top:1.5px solid var(--border); }
+        .quiz-footer { min-height:70px; flex-basis:70px; padding:10px 14px; }
+        .review-row { grid-template-columns:minmax(0,1fr) auto; gap:8px 14px; }
+        .review-row .review-secondary { display:none; }
+      }
+      @media (max-width:640px) {
+        .quiz-main { padding:8px; }
+        .quiz-panel { border-radius:14px; }
+        .prompt-pane,.response-pane { padding:18px 16px; }
+        .quiz-footer { gap:8px; }
+        .quiz-footer .footer-progress { display:none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="global-status" class="hidden status-toast" role="alert"></div>
+    <div id="dashboard-shell">
+      <header class="mobile-header">
+        <button id="mobile-menu-button" type="button" class="grid h-11 w-11 place-items-center rounded-xl text-2xl" aria-label="Open navigation">☰</button>
+        <button id="mobile-home-button" type="button" class="display-font text-center text-2xl font-bold text-[#3483f9]">study lab</button>
+        <button id="mobile-profile-button" type="button" class="grid h-10 w-10 place-items-center justify-self-end rounded-full border-2 border-[#3483f9] bg-violet-600 text-sm font-bold text-white" aria-label="Current learner">?</button>
+      </header>
+      <button id="sidebar-backdrop" class="sidebar-backdrop" type="button" aria-label="Close navigation"></button>
+      <aside id="dashboard-sidebar" class="dashboard-sidebar" aria-label="Main navigation">
+        <div class="flex h-[86px] items-center justify-between border-b border-slate-100 px-5"><button id="brand-home-button" type="button" class="display-font text-2xl font-bold tracking-tight text-[#3483f9]">study lab</button><button id="close-mobile-menu" type="button" class="grid h-9 w-9 place-items-center rounded-full text-xl lg:hidden" aria-label="Close navigation">×</button></div>
+        <nav class="min-h-0 flex-1 overflow-y-auto px-3 py-3">
+          <button id="nav-home" type="button" class="nav-link active"><span class="nav-icon">⌂</span><span>Home</span></button>
+          <p class="nav-label">Learn</p>
+          <button id="nav-subjects" type="button" class="nav-link"><span class="nav-icon">▤</span><span>Subjects</span></button>
+          <button id="nav-learners" type="button" class="nav-link"><span class="nav-icon">♙</span><span>Learners</span></button>
+          <p class="nav-label">Practice</p>
+          <button id="nav-review" type="button" class="nav-link"><span class="nav-icon">↻</span><span>Review mistakes</span><span id="sidebar-review-count" class="ml-auto rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-600">0</span></button>
+          <p class="nav-label">Progress</p>
+          <button id="nav-progress" type="button" class="nav-link"><span class="nav-icon">▥</span><span>Subject progress</span></button>
+          <button id="nav-manage" type="button" class="nav-link"><span class="nav-icon">⚙</span><span>Manage</span></button>
+        </nav>
+        <div class="border-t border-slate-100 p-3">
+          <div class="mb-3 flex items-center gap-3 rounded-xl px-2 py-2"><span id="sidebar-avatar" class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-violet-600 text-xs font-bold text-white">?</span><span class="min-w-0"><span id="sidebar-learner-name" class="block truncate text-sm font-semibold">Choose learner</span><span id="sidebar-learner-detail" class="block text-[11px] font-medium text-[#3483f9]">Study profile</span></span></div>
+          <button id="sidebar-manage-button" type="button" class="press-button press-green w-full px-3 py-2.5 text-xs">Manage learners</button>
+        </div>
+      </aside>
+      <main class="dashboard-main">
+        <div class="mx-auto w-full max-w-[1220px] px-5 py-8 lg:px-10 lg:py-9">
+          <section id="home-view" aria-labelledby="home-heading">
+            <div class="mb-7 flex flex-wrap items-end justify-between gap-4"><div><p class="text-xs font-bold uppercase tracking-[.18em] text-[#3483f9]">Family study space</p><h1 id="home-heading" class="display-font mt-1 text-3xl font-bold tracking-tight sm:text-4xl">Who is learning?</h1><p class="mt-2 text-sm font-medium text-slate-500">Choose a learner to open their subjects and saved progress.</p></div><div class="app-card hidden items-center gap-3 px-4 py-3 sm:flex"><span class="grid h-9 w-9 place-items-center rounded-full bg-blue-50 font-bold text-[#3483f9]">4</span><span><span class="block text-xs font-bold">Learner profiles</span><span class="block text-[11px] text-slate-400">Progress stays separate</span></span></div></div>
+            <div id="student-grid" class="grid gap-5 sm:grid-cols-2 xl:grid-cols-4" aria-live="polite"></div>
+          </section>
+          <section id="subjects-view" class="hidden" aria-labelledby="subjects-heading">
+            <div class="mb-7 flex flex-wrap items-end justify-between gap-4"><div><button id="back-to-students" type="button" class="mb-3 text-sm font-semibold text-[#3483f9]">← Learners</button><p id="student-eyebrow" class="text-xs font-bold uppercase tracking-[.18em] text-[#3483f9]"></p><h1 id="subjects-heading" tabindex="-1" class="display-font mt-1 text-3xl font-bold outline-none">Subjects</h1></div><div id="subject-overview" class="app-card flex items-center gap-4 px-5 py-3 text-xs text-slate-500"></div></div>
+            <div id="subject-grid" class="grid gap-5 md:grid-cols-2 xl:grid-cols-3"></div>
+          </section>
+          <section id="review-view" class="hidden" aria-labelledby="review-heading">
+            <div class="mb-7 text-center"><p class="text-xs font-bold uppercase tracking-[.18em] text-red-500">Practice</p><h1 id="review-heading" tabindex="-1" class="display-font mt-1 text-3xl font-bold outline-none sm:text-4xl">Mistake Log</h1><p class="mx-auto mt-2 max-w-xl text-sm font-medium text-slate-500">Review missed questions, retry them, and clear them by answering correctly.</p></div>
+            <div class="mx-auto max-w-5xl overflow-hidden app-card">
+              <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4"><div><span id="review-total" class="text-sm font-bold">0 to review</span><span id="review-learner-label" class="ml-2 text-xs text-slate-400"></span></div><label class="text-xs font-semibold text-slate-500">Subject <select id="review-subject-select" class="ml-2 rounded-xl border-[1.5px] border-slate-200 bg-white px-3 py-2 outline-none focus:border-[#3483f9]"></select></label></div>
+              <div id="review-loading" class="grid min-h-56 place-items-center text-sm font-semibold text-slate-400">Loading mistakes...</div>
+              <div id="review-empty" class="hidden min-h-64 place-items-center p-8 text-center"><div><span class="mx-auto grid h-14 w-14 place-items-center rounded-full bg-emerald-50 text-2xl text-emerald-600">✓</span><h2 class="display-font mt-4 text-xl font-bold">No mistakes waiting</h2><p class="mt-1 text-sm text-slate-500">Incorrect answers will appear here automatically.</p></div></div>
+              <div id="review-list" class="hidden"></div>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+    <section id="quiz-view" class="quiz-view hidden" aria-label="Practice workspace">
+      <header class="quiz-topbar">
+        <div class="flex items-center gap-3"><button id="practice-menu-button" type="button" class="press-button press-white grid h-10 w-10 place-items-center lg:hidden" aria-label="Open chapters">☰</button><button id="exit-quiz-button" type="button" class="press-button press-blue px-4 py-2 text-sm">× &nbsp;Exit</button><span class="desktop-only text-slate-400">◉</span><span id="session-timer" class="desktop-only text-lg font-bold tabular-nums">00:00</span></div>
+        <div class="min-w-0 text-center"><p id="quiz-context" class="display-font truncate text-base font-bold"></p><div class="mt-0.5 flex items-center justify-center gap-2"><span id="quiz-section-label" class="truncate rounded-full bg-blue-50 px-3 py-1 text-[11px] font-semibold text-[#3483f9]"></span><span id="quiz-difficulty-label" class="rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold capitalize text-emerald-600"></span></div></div>
+        <div class="flex justify-end gap-2"><button id="quiz-review-button" type="button" class="press-button press-white px-3 py-2 text-xs">Review <span id="quiz-review-count">0</span></button></div>
+      </header>
+      <div class="quiz-body">
+        <button id="practice-backdrop" type="button" class="practice-backdrop" aria-label="Close chapters"></button>
+        <aside id="practice-sidebar" class="practice-sidebar" aria-label="Chapter and question navigation">
+          <div class="border-b border-slate-100 px-4 py-4"><div class="flex items-center justify-between gap-3"><div><p class="text-[10px] font-bold uppercase tracking-[.14em] text-slate-400">Current subject</p><p id="practice-subject-label" class="display-font mt-1 text-base font-bold"></p></div><button id="close-practice-menu" type="button" class="grid h-9 w-9 place-items-center rounded-full text-xl lg:hidden">×</button></div></div>
+          <div class="max-h-[35%] min-h-[130px] overflow-y-auto border-b border-slate-100 p-3"><p class="mb-2 px-2 text-[10px] font-bold uppercase tracking-[.14em] text-slate-400">Chapters</p><nav id="chapter-nav" class="space-y-1"></nav></div>
+          <div class="min-h-0 flex-1 overflow-y-auto p-4"><div class="mb-3 flex items-center justify-between"><p class="text-[10px] font-bold uppercase tracking-[.14em] text-slate-400">Questions</p><span id="chapter-progress-label" class="text-[10px] font-semibold text-slate-400"></span></div><div id="question-nav"></div></div>
+        </aside>
+        <main class="quiz-main">
+          <div id="quiz-status" class="mb-3 hidden rounded-xl border px-4 py-2.5 text-sm font-semibold" role="alert"></div>
+          <section id="loading-state" class="app-card grid min-h-0 flex-1 place-items-center"><div class="text-center"><div class="mx-auto h-9 w-9 animate-spin rounded-full border-4 border-blue-100 border-t-[#3483f9]"></div><p class="mt-3 text-sm font-semibold text-slate-400">Loading chapter...</p></div></section>
+          <section id="empty-state" class="app-card hidden grid min-h-0 flex-1 place-items-center text-center"><div><span class="mx-auto grid h-12 w-12 place-items-center rounded-full bg-blue-50 font-bold text-[#3483f9]">?</span><h2 class="display-font mt-3 text-lg font-bold">Nothing here yet</h2><p class="mt-1 text-sm text-slate-500">Choose another chapter or import its test bank.</p></div></section>
+          <section id="quiz-panel" class="quiz-panel hidden" aria-labelledby="question-heading">
+            <div id="question-scroll" class="question-scroll"><div id="quiz-columns" class="quiz-columns"><article id="prompt-pane" class="prompt-pane"><div class="mb-5 flex flex-wrap items-center justify-between gap-2"><p id="question-position" class="text-xs font-semibold text-slate-400"></p><p id="book-label" class="text-[10px] font-bold uppercase tracking-[.12em] text-slate-400"></p></div><h2 id="question-heading" tabindex="-1" class="text-lg font-medium leading-8 outline-none sm:text-xl"></h2><img id="question-image" class="mx-auto mt-5 hidden max-h-56 max-w-full rounded-xl object-contain" alt="Question reference" /></article><aside id="response-pane" class="response-pane"><fieldset id="options-list" class="grid gap-3"><legend class="sr-only">Answer options</legend></fieldset><div id="feedback" class="hidden" aria-live="polite"><div class="mb-5 flex items-center justify-between gap-3"><h3 id="feedback-title" class="display-font text-xl font-bold"></h3><span id="feedback-state-badge" class="rounded-full px-3 py-1 text-xs font-bold"></span></div><p id="feedback-detail" class="whitespace-pre-line text-[15px] leading-7 text-slate-700"></p><img id="solution-image" class="mx-auto mt-4 hidden max-h-64 max-w-full rounded-xl object-contain" alt="Worked solution" /><div id="feedback-review-note" class="mt-6 rounded-xl border p-3 text-sm font-semibold"></div></div></aside></div></div>
+            <footer class="quiz-footer"><button id="previous-button" type="button" class="press-button press-white px-4 py-2.5 text-sm disabled:opacity-30">← Previous</button><span id="result-count" class="footer-progress text-xs font-semibold text-slate-400"></span><div class="flex gap-2"><button id="submit-button" type="button" disabled class="press-button press-blue px-6 py-2.5 text-sm">Check&nbsp; ›</button><button id="next-button" type="button" class="press-button press-green hidden px-6 py-2.5 text-sm">Next&nbsp; ›</button></div></footer>
+          </section>
+        </main>
+      </div>
+    </section>
+    <dialog id="settings-dialog" class="w-[calc(100%-2rem)] max-w-2xl rounded-2xl bg-white p-0 text-slate-900 shadow-2xl backdrop:bg-slate-900/40">
+      <form id="settings-form" class="max-h-[90vh] overflow-y-auto p-6 sm:p-8"><div class="mb-6 flex items-start justify-between"><div><p class="text-xs font-bold uppercase tracking-[.18em] text-[#3483f9]">Family settings</p><h2 class="display-font mt-1 text-2xl font-bold">Manage learners</h2><p class="mt-1 text-sm text-slate-500">Separate subjects with commas.</p></div><button id="close-settings" type="button" class="grid h-10 w-10 place-items-center rounded-xl bg-blue-50 text-xl font-bold text-slate-500" aria-label="Close">×</button></div><div id="settings-fields" class="space-y-3"></div><div id="settings-error" class="mt-4 hidden rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-800" role="alert"></div><div class="mt-6 flex justify-end gap-3 border-t border-slate-200 pt-5"><button id="cancel-settings" type="button" class="press-button press-white px-5 py-2.5 text-sm">Cancel</button><button id="save-settings" type="submit" class="press-button press-blue px-5 py-2.5 text-sm">Save</button></div></form>
+    </dialog>
+    <script src="/app.js?v=20260831-3" defer></script>
+  </body>
+</html>

@@ -1,0 +1,28 @@
+{
+  "name": "chemistry-quiz",
+  "version": "1.0.0",
+  "description": "Personalized multi-subject family quiz powered by Express and MongoDB",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "parse": "node scripts/parser.js"
+  },
+  "keywords": [
+    "chemistry",
+    "quiz",
+    "express",
+    "mongodb"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "adm-zip": "^0.6.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mongoose": "^9.9.4",
+    "word-extractor": "^1.0.4"
+  }
+}

@@ -1,0 +1,19 @@
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      MONGODB_URI: mongodb://mongo:27017/chemistry_quiz
+    depends_on:
+      - mongo
+  mongo:
+    image: mongo:8
+    restart: unless-stopped
+    volumes:
+      - mongodb-data:/data/db
+volumes:
+  mongodb-data:
+
