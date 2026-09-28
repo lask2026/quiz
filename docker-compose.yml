@@ -14,6 +14,9 @@ services:
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
+    environment:
+      STUDY_USERNAME: ${STUDY_USERNAME}
+      STUDY_PASSWORD_HASH: ${STUDY_PASSWORD_HASH}
     ports:
       - "80:80"
       - "443:443"

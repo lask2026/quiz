@@ -1,4 +1,8 @@
 study.akoti.me {
+  basic_auth {
+    {$STUDY_USERNAME} {$STUDY_PASSWORD_HASH}
+  }
+
   encode zstd gzip
   reverse_proxy app:3000
 }
