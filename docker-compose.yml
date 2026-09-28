@@ -2,8 +2,8 @@ services:
   app:
     build: .
     restart: unless-stopped
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
     volumes:
       - /home/ubuntu/study-library:/app/library:ro
     environment:
