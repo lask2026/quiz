@@ -388,7 +388,16 @@ function createLibraryFolderCard(folder) {
   body.append(icon, label, title, source, metadata);
 
   const footer = document.createElement('div');
-  footer.className = 'flex justify-end border-t border-slate-100 px-4 py-3';
+  footer.className = 'flex items-center justify-end gap-3 border-t border-slate-100 px-4 py-3';
+  if (folder.pdfUrl) {
+    const pdfLink = document.createElement('a');
+    pdfLink.href = folder.pdfUrl;
+    pdfLink.target = '_blank';
+    pdfLink.rel = 'noopener';
+    pdfLink.className = 'press-button press-white px-4 py-2 text-xs';
+    pdfLink.textContent = 'Open PDF  \u2197';
+    footer.append(pdfLink);
+  }
   const button = document.createElement('button');
   button.type = 'button';
   button.className = 'press-button press-green min-w-32 px-5 py-2 text-xs';
@@ -399,7 +408,7 @@ function createLibraryFolderCard(folder) {
   return card;
 }
 
-function createLibraryChapterCard(chapter) {
+function createLibraryChapterCard(chapter, folder) {
   const card = document.createElement('article');
   card.className = 'app-card border border-slate-100 p-5';
   const number = document.createElement('p');
@@ -412,6 +421,16 @@ function createLibraryChapterCard(chapter) {
   pages.className = 'mt-4 text-xs font-semibold text-slate-400';
   pages.textContent = `PDF pages ${chapter.pages}`;
   card.append(number, title, pages);
+  if (folder?.pdfUrl) {
+    const firstPage = String(chapter.pages || '').split('-')[0].trim();
+    const pdfLink = document.createElement('a');
+    pdfLink.href = `${folder.pdfUrl}${firstPage ? `#page=${firstPage}` : ''}`;
+    pdfLink.target = '_blank';
+    pdfLink.rel = 'noopener';
+    pdfLink.className = 'mt-5 inline-flex text-xs font-bold text-[#3483f9] hover:underline';
+    pdfLink.textContent = 'Open this chapter in PDF  \u2197';
+    card.append(pdfLink);
+  }
   return card;
 }
 
@@ -453,7 +472,9 @@ function openLibraryFolder(folderId) {
   elements.libraryDescription.textContent = folder.sourceTitle;
   const chapters = Array.isArray(folder.chapters) ? folder.chapters : [];
   elements.librarySummary.textContent = `${chapters.length} chapters · ${numberFormatter.format(folder.pageCount || 0)} pages`;
-  elements.libraryGrid.replaceChildren(...chapters.map(createLibraryChapterCard));
+  elements.libraryGrid.replaceChildren(
+    ...chapters.map((chapter) => createLibraryChapterCard(chapter, folder)),
+  );
   elements.libraryHeading.focus();
 }
 

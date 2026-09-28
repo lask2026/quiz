@@ -14,11 +14,16 @@ dotenv.config({ quiet: true });
 const app = express();
 const DEFAULT_MONGODB_URI = 'mongodb://127.0.0.1:27017/chemistry_quiz';
 const PUBLIC_DIRECTORY = path.join(__dirname, 'public');
+const LIBRARY_DIRECTORY = path.join(__dirname, 'library');
 
 app.disable('x-powered-by');
 app.use(cors());
 app.use(express.json({ limit: '100kb' }));
 app.use(express.static(PUBLIC_DIRECTORY));
+app.use(
+  '/library',
+  express.static(LIBRARY_DIRECTORY, { dotfiles: 'deny', fallthrough: false, index: false }),
+);
 
 function createHttpError(status, message) {
   const error = new Error(message);

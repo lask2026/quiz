@@ -4,6 +4,7 @@ const SUBJECT_LIBRARY = Object.freeze({
       id: 'organic-chemistry',
       title: 'Organic Chemistry',
       sourceTitle: 'MCAT Organic Chemistry Review',
+      pdfUrl: '/library/mcat/organic-chemistry.pdf',
       pageCount: 629,
       chapters: [
         { number: 1, title: 'Nomenclature', pages: '57-110' },
