@@ -4,11 +4,26 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
+    volumes:
+      - /home/ubuntu/study-library:/app/library:ro
     environment:
       PORT: 3000
       MONGODB_URI: mongodb://mongo:27017/chemistry_quiz
     depends_on:
       - mongo
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - app
   mongo:
     image: mongo:8
     restart: unless-stopped
@@ -16,4 +31,5 @@ services:
       - mongodb-data:/data/db
 volumes:
   mongodb-data:
-
+  caddy-data:
+  caddy-config:
