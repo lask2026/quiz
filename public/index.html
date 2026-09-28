@@ -123,6 +123,18 @@
             <div class="mb-7 flex flex-wrap items-end justify-between gap-4"><div><button id="back-to-students" type="button" class="mb-3 text-sm font-semibold text-[#3483f9]">← Learners</button><p id="student-eyebrow" class="text-xs font-bold uppercase tracking-[.18em] text-[#3483f9]"></p><h1 id="subjects-heading" tabindex="-1" class="display-font mt-1 text-3xl font-bold outline-none">Subjects</h1></div><div id="subject-overview" class="app-card flex items-center gap-4 px-5 py-3 text-xs text-slate-500"></div></div>
             <div id="subject-grid" class="grid gap-5 md:grid-cols-2 xl:grid-cols-3"></div>
           </section>
+          <section id="library-view" class="hidden" aria-labelledby="library-heading">
+            <div class="mb-7 flex flex-wrap items-end justify-between gap-4">
+              <div class="max-w-3xl">
+                <button id="library-back-button" type="button" class="mb-3 text-sm font-semibold text-[#3483f9]">← Subjects</button>
+                <p id="library-eyebrow" class="text-xs font-bold uppercase tracking-[.18em] text-[#3483f9]"></p>
+                <h1 id="library-heading" tabindex="-1" class="display-font mt-1 text-3xl font-bold outline-none"></h1>
+                <p id="library-description" class="mt-2 text-sm font-medium text-slate-500"></p>
+              </div>
+              <div id="library-summary" class="app-card flex items-center gap-4 px-5 py-3 text-xs font-semibold text-slate-500"></div>
+            </div>
+            <div id="library-grid" class="grid gap-5 md:grid-cols-2 xl:grid-cols-3"></div>
+          </section>
           <section id="review-view" class="hidden" aria-labelledby="review-heading">
             <div class="mb-7 text-center"><p class="text-xs font-bold uppercase tracking-[.18em] text-red-500">Practice</p><h1 id="review-heading" tabindex="-1" class="display-font mt-1 text-3xl font-bold outline-none sm:text-4xl">Mistake Log</h1><p class="mx-auto mt-2 max-w-xl text-sm font-medium text-slate-500">Review missed questions, retry them, and clear them by answering correctly.</p></div>
             <div class="mx-auto max-w-5xl overflow-hidden app-card">
@@ -162,6 +174,6 @@
     <dialog id="settings-dialog" class="w-[calc(100%-2rem)] max-w-2xl rounded-2xl bg-white p-0 text-slate-900 shadow-2xl backdrop:bg-slate-900/40">
       <form id="settings-form" class="max-h-[90vh] overflow-y-auto p-6 sm:p-8"><div class="mb-6 flex items-start justify-between"><div><p class="text-xs font-bold uppercase tracking-[.18em] text-[#3483f9]">Family settings</p><h2 class="display-font mt-1 text-2xl font-bold">Manage learners</h2><p class="mt-1 text-sm text-slate-500">Separate subjects with commas.</p></div><button id="close-settings" type="button" class="grid h-10 w-10 place-items-center rounded-xl bg-blue-50 text-xl font-bold text-slate-500" aria-label="Close">×</button></div><div id="settings-fields" class="space-y-3"></div><div id="settings-error" class="mt-4 hidden rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-800" role="alert"></div><div class="mt-6 flex justify-end gap-3 border-t border-slate-200 pt-5"><button id="cancel-settings" type="button" class="press-button press-white px-5 py-2.5 text-sm">Cancel</button><button id="save-settings" type="submit" class="press-button press-blue px-5 py-2.5 text-sm">Save</button></div></form>
     </dialog>
-    <script src="/app.js?v=20260831-3" defer></script>
+    <script src="/app.js?v=20260928-1" defer></script>
   </body>
 </html>

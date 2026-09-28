@@ -1,9 +1,11 @@
 const state = {
   students: [],
   questionCounts: {},
+  subjectLibrary: {},
   subjectSummaries: {},
   selectedStudentIndex: null,
   selectedSubject: '',
+  selectedLibraryFolderId: '',
   chapters: [],
   progress: null,
   activeChapter: '',
@@ -29,6 +31,8 @@ const elementIds = [
   'sidebar-learner-name', 'sidebar-learner-detail', 'sidebar-manage-button',
   'home-view', 'home-heading', 'student-grid', 'subjects-view', 'back-to-students',
   'student-eyebrow', 'subjects-heading', 'subject-overview', 'subject-grid',
+  'library-view', 'library-back-button', 'library-eyebrow', 'library-heading',
+  'library-description', 'library-summary', 'library-grid',
   'review-view', 'review-heading', 'review-total', 'review-learner-label',
   'review-subject-select', 'review-loading', 'review-empty', 'review-list',
   'quiz-view', 'practice-menu-button', 'exit-quiz-button', 'session-timer',
@@ -129,6 +133,7 @@ function setDashboardView(view, activeNav = view) {
   elements.quizView.classList.add('hidden');
   elements.homeView.classList.toggle('hidden', view !== 'home');
   elements.subjectsView.classList.toggle('hidden', view !== 'subjects');
+  elements.libraryView.classList.toggle('hidden', view !== 'library');
   elements.reviewView.classList.toggle('hidden', view !== 'review');
   document.body.classList.remove('overflow-hidden');
   setActiveNav(activeNav);
@@ -235,7 +240,66 @@ function createSegments(percent) {
   return container;
 }
 
+function libraryFoldersFor(subject) {
+  const folders = state.subjectLibrary?.[subject];
+  return Array.isArray(folders) ? folders : [];
+}
+
+function createLibrarySubjectCard(subject, folders) {
+  const chapterCount = folders.reduce(
+    (total, folder) => total + (Array.isArray(folder.chapters) ? folder.chapters.length : 0),
+    0,
+  );
+  const pageCount = folders.reduce((total, folder) => total + (folder.pageCount || 0), 0);
+  const card = document.createElement('article');
+  card.className = 'app-card overflow-hidden border border-blue-100';
+
+  const body = document.createElement('div');
+  body.className = 'p-5';
+  const titleRow = document.createElement('div');
+  titleRow.className = 'flex items-start justify-between gap-3';
+  const titleWrap = document.createElement('div');
+  const title = document.createElement('h2');
+  title.className = 'display-font text-xl font-bold';
+  title.textContent = subject;
+  const counts = document.createElement('p');
+  counts.className = 'mt-1 text-xs font-medium text-slate-400';
+  counts.textContent = `${folders.length} study ${folders.length === 1 ? 'folder' : 'folders'} · ${chapterCount} chapters`;
+  titleWrap.append(title, counts);
+  const badge = document.createElement('span');
+  badge.className = 'rounded-full bg-blue-50 px-2.5 py-1 text-[10px] font-bold text-[#3483f9]';
+  badge.textContent = 'Library';
+  titleRow.append(titleWrap, badge);
+
+  const folderPreview = document.createElement('div');
+  folderPreview.className = 'mt-7 rounded-2xl border border-blue-100 bg-blue-50/70 p-4';
+  const folderLabel = document.createElement('p');
+  folderLabel.className = 'text-[10px] font-bold uppercase tracking-[.12em] text-[#3483f9]';
+  folderLabel.textContent = 'Study folder';
+  const folderTitle = document.createElement('p');
+  folderTitle.className = 'display-font mt-1 text-lg font-bold text-slate-800';
+  folderTitle.textContent = folders[0]?.title || 'Course materials';
+  const folderMeta = document.createElement('p');
+  folderMeta.className = 'mt-1 text-xs font-medium text-slate-500';
+  folderMeta.textContent = `${numberFormatter.format(pageCount)} pages · ${chapterCount} chapters`;
+  folderPreview.append(folderLabel, folderTitle, folderMeta);
+  body.append(titleRow, folderPreview);
+
+  const footer = document.createElement('div');
+  footer.className = 'flex items-center justify-end border-t border-slate-100 px-4 py-3';
+  const openButton = document.createElement('button');
+  openButton.type = 'button';
+  openButton.className = 'press-button press-green min-w-32 px-5 py-2 text-xs';
+  openButton.textContent = `Open ${subject}  ›`;
+  openButton.addEventListener('click', () => openSubjectLibrary(subject));
+  footer.append(openButton);
+  card.append(body, footer);
+  return card;
+}
+
 function createSubjectCard(subject) {
+  const libraryFolders = libraryFoldersFor(subject);
+  if (libraryFolders.length) return createLibrarySubjectCard(subject, libraryFolders);
   const summary = state.subjectSummaries[subject] || {
     total: state.questionCounts[subject] || 0,
     chapters: 0,
@@ -293,6 +357,104 @@ function createSubjectCard(subject) {
   footer.append(reviewButton, practiceButton);
   card.append(body, footer);
   return card;
+}
+
+function createLibraryFolderCard(folder) {
+  const chapters = Array.isArray(folder.chapters) ? folder.chapters : [];
+  const card = document.createElement('article');
+  card.className = 'app-card overflow-hidden border border-blue-100';
+  const body = document.createElement('div');
+  body.className = 'p-5';
+  const icon = document.createElement('span');
+  icon.className = 'grid h-12 w-12 place-items-center rounded-2xl bg-blue-50 text-2xl text-[#3483f9]';
+  icon.textContent = '▤';
+  const label = document.createElement('p');
+  label.className = 'mt-5 text-[10px] font-bold uppercase tracking-[.14em] text-[#3483f9]';
+  label.textContent = 'Study folder';
+  const title = document.createElement('h2');
+  title.className = 'display-font mt-1 text-xl font-bold';
+  title.textContent = folder.title;
+  const source = document.createElement('p');
+  source.className = 'mt-2 text-sm font-medium leading-6 text-slate-500';
+  source.textContent = folder.sourceTitle;
+  const metadata = document.createElement('div');
+  metadata.className = 'mt-5 flex flex-wrap gap-2';
+  [`${chapters.length} chapters`, `${numberFormatter.format(folder.pageCount || 0)} pages`].forEach((text) => {
+    const pill = document.createElement('span');
+    pill.className = 'rounded-full bg-slate-100 px-3 py-1 text-[11px] font-bold text-slate-600';
+    pill.textContent = text;
+    metadata.append(pill);
+  });
+  body.append(icon, label, title, source, metadata);
+
+  const footer = document.createElement('div');
+  footer.className = 'flex justify-end border-t border-slate-100 px-4 py-3';
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'press-button press-green min-w-32 px-5 py-2 text-xs';
+  button.textContent = 'Open folder  ›';
+  button.addEventListener('click', () => openLibraryFolder(folder.id));
+  footer.append(button);
+  card.append(body, footer);
+  return card;
+}
+
+function createLibraryChapterCard(chapter) {
+  const card = document.createElement('article');
+  card.className = 'app-card border border-slate-100 p-5';
+  const number = document.createElement('p');
+  number.className = 'text-[10px] font-bold uppercase tracking-[.14em] text-[#3483f9]';
+  number.textContent = `Chapter ${chapter.number}`;
+  const title = document.createElement('h2');
+  title.className = 'display-font mt-2 text-lg font-bold leading-6';
+  title.textContent = chapter.title;
+  const pages = document.createElement('p');
+  pages.className = 'mt-4 text-xs font-semibold text-slate-400';
+  pages.textContent = `PDF pages ${chapter.pages}`;
+  card.append(number, title, pages);
+  return card;
+}
+
+function renderSubjectLibrary(subject) {
+  const student = currentStudent();
+  const folders = libraryFoldersFor(subject);
+  state.selectedSubject = subject;
+  state.selectedLibraryFolderId = '';
+  elements.libraryBackButton.textContent = '← Subjects';
+  elements.libraryEyebrow.textContent = `${student?.name || 'Learner'}'s study space`;
+  elements.libraryHeading.textContent = subject;
+  elements.libraryDescription.textContent = 'Choose a study folder to see its chapters.';
+  const chapterCount = folders.reduce(
+    (total, folder) => total + (Array.isArray(folder.chapters) ? folder.chapters.length : 0),
+    0,
+  );
+  elements.librarySummary.textContent = `${folders.length} ${folders.length === 1 ? 'folder' : 'folders'} · ${chapterCount} chapters`;
+  elements.libraryGrid.replaceChildren(...folders.map(createLibraryFolderCard));
+  setDashboardView('library', 'subjects');
+  elements.libraryHeading.focus();
+}
+
+function openSubjectLibrary(subject) {
+  if (!currentStudent()) {
+    showGlobalMessage('Choose a learner first.');
+    showLearners();
+    return;
+  }
+  renderSubjectLibrary(subject);
+}
+
+function openLibraryFolder(folderId) {
+  const folder = libraryFoldersFor(state.selectedSubject).find((item) => item.id === folderId);
+  if (!folder) return;
+  state.selectedLibraryFolderId = folder.id;
+  elements.libraryBackButton.textContent = `← ${state.selectedSubject}`;
+  elements.libraryEyebrow.textContent = state.selectedSubject;
+  elements.libraryHeading.textContent = folder.title;
+  elements.libraryDescription.textContent = folder.sourceTitle;
+  const chapters = Array.isArray(folder.chapters) ? folder.chapters : [];
+  elements.librarySummary.textContent = `${chapters.length} chapters · ${numberFormatter.format(folder.pageCount || 0)} pages`;
+  elements.libraryGrid.replaceChildren(...chapters.map(createLibraryChapterCard));
+  elements.libraryHeading.focus();
 }
 
 function renderSubjectOverview() {
@@ -354,6 +516,7 @@ async function loadSubjectSummaries() {
 function selectStudent(index) {
   state.selectedStudentIndex = index;
   state.selectedSubject = '';
+  state.selectedLibraryFolderId = '';
   state.subjectSummaries = {};
   updateProfileChrome();
   renderSubjects();
@@ -367,6 +530,7 @@ async function loadSettings() {
     const data = await request('/api/settings');
     state.students = data.students || [];
     state.questionCounts = data.questionCounts || {};
+    state.subjectLibrary = data.subjectLibrary || {};
     renderStudents();
     updateProfileChrome();
   } catch (error) {
@@ -992,6 +1156,7 @@ async function saveSettings(event) {
     closeSettings();
     if (state.selectedStudentIndex !== null) {
       state.subjectSummaries = {};
+      state.subjectLibrary = data.subjectLibrary || state.subjectLibrary;
       renderSubjects();
       loadSubjectSummaries();
     }
@@ -1017,6 +1182,7 @@ function showSubjects(activeNav = 'subjects') {
     return;
   }
   renderSubjects();
+  state.selectedLibraryFolderId = '';
   setDashboardView('subjects', activeNav);
   elements.subjectsHeading.focus();
 }
@@ -1038,6 +1204,10 @@ elements.navManage.addEventListener('click', openSettings);
 elements.sidebarManageButton.addEventListener('click', openSettings);
 elements.mobileProfileButton.addEventListener('click', () => currentStudent() ? showSubjects() : showLearners());
 elements.backToStudents.addEventListener('click', showLearners);
+elements.libraryBackButton.addEventListener('click', () => {
+  if (state.selectedLibraryFolderId) renderSubjectLibrary(state.selectedSubject);
+  else showSubjects('subjects');
+});
 elements.reviewSubjectSelect.addEventListener('change', (event) => {
   state.selectedSubject = event.target.value;
   loadReviewList();

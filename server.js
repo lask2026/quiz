@@ -7,6 +7,7 @@ const Question = require('./models/Question');
 const AppSettings = require('./models/AppSettings');
 const { getOrCreateSettings } = require('./models/AppSettings');
 const Progress = require('./models/Progress');
+const subjectLibrary = require('./data/subjectLibrary');
 
 dotenv.config({ quiet: true });
 
@@ -113,6 +114,7 @@ async function getSettingsResponse() {
     questionCounts: Object.fromEntries(
       subjectCounts.map((entry) => [entry._id, entry.count]),
     ),
+    subjectLibrary,
   };
 }
 
